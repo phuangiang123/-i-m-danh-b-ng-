@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bình Chọn & Quản Lý Tiền Sân Bóng</title>
+  <title>Điểm Danh Bóng Đá</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -35,43 +35,7 @@
       </button>
     </header>
 
-    <!-- Thông tin trận đấu -->
-    <section class="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/60 shadow-lg mb-6">
-      <div class="flex justify-between items-center mb-3">
-        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-          <i class="fa-regular fa-clock mr-1"></i> 19:30 • Thứ 6 này
-        </span>
-      </div>
-      <h2 class="text-xl font-bold text-white mb-2">Trận Siêu Kinh Điển Thứ 6 ⚽🔥</h2>
-      <div class="grid grid-cols-2 gap-3 text-sm text-slate-300 mb-4">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-location-dot text-rose-400"></i>
-          <span>Sân bóng Thanh Niên</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-money-bill-wave text-amber-400"></i>
-          <span>50.000đ / người</span>
-        </div>
-      </div>
-
-      <!-- Thống kê nhanh -->
-      <div class="grid grid-cols-3 gap-3 pt-3 border-t border-slate-700/60 text-center">
-        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-          <p class="text-xs text-slate-400">Cầu thủ đi</p>
-          <p id="statGoing" class="text-lg font-bold text-emerald-400">0</p>
-        </div>
-        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-          <p class="text-xs text-slate-400">Đã thu quỹ</p>
-          <p id="statPaid" class="text-lg font-bold text-emerald-400">0đ</p>
-        </div>
-        <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-          <p class="text-xs text-slate-400">Còn thiếu</p>
-          <p id="statRemain" class="text-lg font-bold text-amber-400">0đ</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Thêm cầu thủ & Tìm kiếm -->
+    <!-- Thêm cầu thủ -->
     <div class="flex gap-2 mb-4">
       <input type="text" id="newPlayerInput" placeholder="Nhập tên cầu thủ mới..." 
         class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
@@ -101,7 +65,7 @@
   </div>
 
   <script>
-    // Cấu hình Firebase Realtime Database của bạn
+    // Cấu hình Firebase Realtime Database
     const firebaseConfig = {
       databaseURL: "https://diemdanh-bongda-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
@@ -109,7 +73,6 @@
     const db = firebase.database();
     const dataRef = db.ref("match_roster");
 
-    const FEE = 50000;
     let currentFilter = 'all';
     let roster = [];
 
@@ -146,20 +109,6 @@
     function render() {
       const list = document.getElementById("playerList");
       list.innerHTML = "";
-
-      let countGoing = 0;
-      let countPaid = 0;
-
-      roster.forEach(p => {
-        if (p.status === "going") {
-          countGoing++;
-          if (p.paid) countPaid++;
-        }
-      });
-
-      document.getElementById("statGoing").innerText = countGoing;
-      document.getElementById("statPaid").innerText = (countPaid * FEE).toLocaleString('vi-VN') + "đ";
-      document.getElementById("statRemain").innerText = ((countGoing - countPaid) * FEE).toLocaleString('vi-VN') + "đ";
 
       const filtered = roster.filter(p => {
         if (currentFilter === 'going') return p.status === 'going';
@@ -260,9 +209,9 @@
     function copySummary() {
       let goingList = roster.filter(p => p.status === 'going').map((p, i) => `${i+1}. ${p.name} (${p.paid ? 'Đã đóng' : 'Chưa đóng'})`).join('\n');
       let maybeList = roster.filter(p => p.status === 'maybe').map(p => p.name).join(', ');
-      let text = `⚽ BÌNH CHỌN ĐÁ BÓNG THỨ 6\n📍 Sân bóng Thanh Niên (19:30)\n💵 Tiền sân: 50k/người\n\nDanh sách đá (${roster.filter(p=>p.status==='going').length} người):\n${goingList || 'Chưa có ai'}\n\nChưa chốt (50/50): ${maybeList || 'Không có'}\n\n👉 Anh em vào link này tự cập nhật nhé: ${window.location.href}`;
+      let text = `⚽ DANH SÁCH ĐIỂM DANH ĐÁ BÓNG\n\nDanh sách đi (${roster.filter(p=>p.status==='going').length} người):\n${goingList || 'Chưa có ai'}\n\nChưa chốt (50/50): ${maybeList || 'Không có'}\n\n👉 Link điểm danh tự động: ${window.location.href}`;
       navigator.clipboard.writeText(text).then(() => {
-        alert("Đã sao chép nội dung chốt danh sách để gửi nhóm Zalo/Mess!");
+        alert("Đã sao chép danh sách!");
       });
     }
   </script>
