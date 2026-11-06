@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bình Chọn & Quản Lý Tiền Sân Bóng</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            mess: {
+              blue: '#0084FF',
+              lightBlue: '#E7F3FF',
+              purple: '#8000FF',
+              bg: '#F0F2F5',
+              card: '#FFFFFF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar & smooth transitions */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .poll-bar {
+      transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #10B981;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #10B981;
+    }
+  </style>
+</head>
+<body class="bg-[#F0F2F5] text-slate-800 min-h-screen antialiased flex flex-col items-center p-3 sm:p-5">
+
+  <!-- Main Container (Mobile First Max Width) -->
+  <div class="w-full max-w-lg flex flex-col gap-4 pb-16">
+
+    <!-- Top App Bar -->
+    <header class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <i class="fa-solid fa-futbol text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-slate-900 leading-tight">Điểm Danh & Thu Quỹ</h1>
+          <p class="text-xs text-slate-500 flex items-center gap-1">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Tự động lưu trên máy
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openSettingsModal()" title="Cài đặt trận đấu" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-gear text-sm"></i>
+        </button>
+        <button onclick="openResetModal()" title="Làm mới trận đấu" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 flex items-center justify-center transition">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Match Info Card -->
+    <section class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white rounded-3xl p-5 shadow-lg shadow-indigo-500/25 relative overflow-hidden">
+      <!-- Background decoration -->
+      <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+      
+      <div class="flex justify-between items-start mb-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md">
+          <i class="fa-solid fa-calendar-day"></i> <span id="display-date">19:30 • Thứ 6 này</span>
+        </span>
+        <button onclick="openSettingsModal()" class="text-xs text-white/80 hover:text-white underline underline-offset-2">
+          Thay đổi
+        </button>
+      </div>
+
+      <h2 id="display-title" class="text-xl font-extrabold tracking-tight mb-2">Trận Siêu Kinh Điển Tuần Này ⚽</h2>
+      
+      <div class="grid grid-cols-2 gap-2 text-xs font-medium text-white/90 mb-4">
+        <div class="flex items-center gap-2 bg-black/15 px-3 py-2 rounded-xl backdrop-blur-sm">
+          <i class="fa-solid fa-location-dot text-rose-300"></i>
+          <span id="display-venue" class="truncate">Sân bóng Thanh Niên</span>
+        </div>
+        <div class="flex items-center gap-2 bg-black/15 px-3 py-2 rounded-xl backdrop-blur-sm">
+          <i class="fa-solid fa-coins text-amber-300"></i>
+          <span id="display-fee">50.000đ / người</span>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Row -->
+      <div class="grid grid-cols-3 gap-2 pt-2 border-t border-white/15 text-center">
+        <div>
+          <div id="stat-attending-count" class="text-lg font-black">0</div>
+          <div class="text-[11px] text-white/70">Cầu thủ đi</div>
+        </div>
+        <div>
+          <div id="stat-paid-amount" class="text-lg font-black text-emerald-300">0đ</div>
+          <div class="text-[11px] text-white/70">Đã thu quỹ</div>
+        </div>
+        <div>
+          <div id="stat-remaining-amount" class="text-lg font-black text-amber-300">0đ</div>
+          <div class="text-[11px] text-white/70">Còn thiếu</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Messenger Poll Progress Card -->
+    <section class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-square-poll-vertical text-blue-500 text-lg"></i>
+          <h3 class="font-bold text-slate-900 text-sm sm:text-base">Cuộc thăm dò ý kiến</h3>
+        </div>
+        <span id="stat-total-voters" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+          0 bình chọn
+        </span>
+      </div>
+
+      <!-- Poll Bars (Messenger Style) -->
+      <div class="space-y-3">
+        <!-- Option 1: Đi -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="flex items-center gap-1.5 text-slate-800">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+              🔥 Đi đá bóng
+            </span>
+            <span class="text-slate-500"><strong id="poll-percent-attending" class="text-blue-600">0%</strong> (<span id="poll-count-attending">0</span>)</span>
+          </div>
+          <div class="h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5">
+            <div id="bar-attending" class="poll-bar h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full w-0"></div>
+          </div>
+        </div>
+
+        <!-- Option 2: Chưa chắc (50/50) -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="flex items-center gap-1.5 text-slate-800">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span>
+              ⏳ 50/50 (Chưa chốt)
+            </span>
+            <span class="text-slate-500"><strong id="poll-percent-undecided" class="text-amber-500">0%</strong> (<span id="poll-count-undecided">0</span>)</span>
+          </div>
+          <div class="h-3 bg-slate-100 rounded-full overflow-hidden p-0.5">
+            <div id="bar-undecided" class="poll-bar h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full w-0"></div>
+          </div>
+        </div>
+
+        <!-- Option 3: Nghỉ -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-xs font-semibold">
+            <span class="flex items-center gap-1.5 text-slate-800">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span>
+              ❌ Bận / Xin nghỉ
+            </span>
+            <span class="text-slate-500"><strong id="poll-percent-absent" class="text-rose-500">0%</strong> (<span id="poll-count-absent">0</span>)</span>
+          </div>
+          <div class="h-3 bg-slate-100 rounded-full overflow-hidden p-0.5">
+            <div id="bar-absent" class="poll-bar h-full bg-gradient-to-r from-slate-400 to-rose-400 rounded-full w-0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Money collection progress inside poll -->
+      <div class="mt-1 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+        <span>Tiến độ thu tiền sân:</span>
+        <span class="font-bold text-slate-700" id="poll-payment-ratio">0 / 0 người đã đóng</span>
+      </div>
+    </section>
+
+    <!-- Quick Add Player Form -->
+    <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex gap-2">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-user-plus absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input 
+          type="text" 
+          id="input-player-name" 
+          placeholder="Nhập tên cầu thủ mới..." 
+          class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
+          onkeypress="handleKeyPressAdd(event)"
+        >
+      </div>
+      <button 
+        onclick="addNewPlayer()" 
+        class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-sm rounded-xl transition flex items-center gap-1.5 shadow-sm"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Thêm</span>
+      </button>
+    </div>
+
+    <!-- Filter Pills & Copy Action Bar -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+      <!-- Filter Tabs -->
+      <div class="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto">
+        <button onclick="setFilter('all')" id="filter-btn-all" class="filter-tab px-3 py-1.5 rounded-lg bg-white shadow-sm text-blue-600 transition">Tất cả (<span id="count-all">0</span>)</button>
+        <button onclick="setFilter('attending')" id="filter-btn-attending" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Đi (<span id="count-attending">0</span>)</button>
+        <button onclick="setFilter('unpaid')" id="filter-btn-unpaid" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Chưa nộp (<span id="count-unpaid">0</span>)</button>
+        <button onclick="setFilter('absent')" id="filter-btn-absent" class="filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition">Nghỉ (<span id="count-absent">0</span>)</button>
+      </div>
+
+      <!-- Copy Button -->
+      <button 
+        onclick="copyReport()" 
+        class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5"
+      >
+        <i class="fa-regular fa-copy text-sm"></i>
+        <span>Copy Gửi Zalo/Mess</span>
+      </button>
+    </div>
+
+    <!-- Players List Section -->
+    <div class="space-y-2.5" id="players-list-container">
+      <!-- Rendered dynamically -->
+    </div>
+
+    <!-- Empty State (hidden by default) -->
+    <div id="empty-state" class="hidden bg-white rounded-3xl p-8 text-center border border-dashed border-slate-300">
+      <div class="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl mb-3">
+        <i class="fa-solid fa-users-slash"></i>
+      </div>
+      <h4 class="font-bold text-slate-700 text-sm mb-1">Chưa có thành viên nào</h4>
+      <p class="text-xs text-slate-500 mb-4">Hãy nhập tên cầu thủ ở ô phía trên để bắt đầu lập danh sách điểm danh nhé!</p>
+      <button onclick="loadSampleData()" class="text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl transition">
+        + Nạp danh sách mẫu
+      </button>
+    </div>
+
+    <!-- Footer Notes -->
+    <footer class="text-center text-xs text-slate-400 mt-2">
+      Ứng dụng hỗ trợ Đội trưởng chốt danh sách & thu tiền sân bóng tiện lợi.
+    </footer>
+
+  </div>
+
+  <!-- MODAL: Settings & Match Info -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-blue-600"></i>
+          Cài đặt thông tin trận
+        </h3>
+        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Tiêu đề trận đấu:</label>
+          <input type="text" id="setting-title" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Thời gian thi đấu:</label>
+          <input type="text" id="setting-date" placeholder="VD: 19:30 - Thứ 6 (06/11)" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Địa điểm / Sân bóng:</label>
+          <input type="text" id="setting-venue" placeholder="VD: Sân cỏ nhân tạo Chuyên Bắc Ninh" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Tiền sân mỗi người (VNĐ):</label>
+          <input type="number" id="setting-fee" step="5000" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeSettingsModal()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition">
+          Hủy
+        </button>
+        <button onclick="saveSettings()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-md shadow-blue-500/20">
+          Lưu cài đặt
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Confirm Reset -->
+  <div id="reset-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-arrow-rotate-left"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-slate-900 text-base mb-1">Bạn muốn làm mới dữ liệu?</h4>
+        <p class="text-xs text-slate-500">Bạn có thể đặt lại trạng thái đóng tiền cho trận mới, hoặc xóa toàn bộ để làm lại từ đầu.</p>
+      </div>
+      <div class="flex flex-col gap-2 pt-1 text-xs font-semibold">
+        <button onclick="resetMatchStatus()" class="w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
+          Chỉ đặt lại trạng thái đóng tiền (Giữ tên)
+        </button>
+        <button onclick="resetAllToDefault()" class="w-full py-2.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition">
+          Xóa hết và nạp danh sách mặc định
+        </button>
+        <button onclick="closeResetModal()" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-medium flex items-center gap-2 z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-4">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+    <span id="toast-msg">Thông báo thành công</span>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Storage Key
+    const STORAGE_KEY = 'FOOTBALL_MESS_POLL_DATA_V1';
+
+    // Default Initial Data
+    const defaultData = {
+      matchInfo: {
+        title: "Trận Siêu Kinh Điển Thứ 6 ⚽🔥",
+        date: "19:30 • Thứ 6 này",
+        venue: "Sân bóng Thanh Niên",
+        feePerPlayer: 50000
+      },
+      players: [
+        { id: '1', name: "Phú (C)", status: 'attending', paid: true },
+        { id: '2', name: "Tuấn Anh", status: 'attending', paid: true },
+        { id: '3', name: "Minh Đức", status: 'attending', paid: false },
+        { id: '4', name: "Huy Hoàng", status: 'attending', paid: false },
+        { id: '5', name: "Văn Hậu", status: 'undecided', paid: false },
+        { id: '6', name: "Đức Chinh", status: 'absent', paid: false },
+        { id: '7', name: "Quang Hải", status: 'attending', paid: true }
+      ]
+    };
+
+    // State
+    let appState = { ...defaultData };
+    let currentFilter = 'all';
+
+    // Format Money (VND)
+    function formatMoney(amount) {
+      return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+    }
+
+    // Load from LocalStorage
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          appState = JSON.parse(saved);
+        } else {
+          appState = JSON.parse(JSON.stringify(defaultData));
+          saveState();
+        }
+      } catch (err) {
+        console.error("Error reading localStorage:", err);
+        appState = JSON.parse(JSON.stringify(defaultData));
+      }
+      renderAll();
+    }
+
+    // Save to LocalStorage
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (err) {
+        console.error("Error saving to localStorage:", err);
+      }
+    }
+
+    // Render Everything
+    function renderAll() {
+      renderMatchInfo();
+      renderStatsAndPoll();
+      renderPlayersList();
+    }
+
+    // 1. Render Match Info
+    function renderMatchInfo() {
+      const { title, date, venue, feePerPlayer } = appState.matchInfo;
+      document.getElementById('display-title').textContent = title || "Trận bóng đá";
+      document.getElementById('display-date').textContent = date || "Thời gian chưa định";
+      document.getElementById('display-venue').textContent = venue || "Chưa rõ sân";
+      document.getElementById('display-fee').textContent = `${formatMoney(feePerPlayer || 0)} / người`;
+    }
+
+    // 2. Render Stats & Poll Bars
+    function renderStatsAndPoll() {
+      const players = appState.players;
+      const totalVoters = players.length;
+
+      const attending = players.filter(p => p.status === 'attending');
+      const undecided = players.filter(p => p.status === 'undecided');
+      const absent = players.filter(p => p.status === 'absent');
+      const paidList = attending.filter(p => p.paid);
+
+      const attendingCount = attending.length;
+      const undecidedCount = undecided.length;
+      const absentCount = absent.length;
+      const paidCount = paidList.length;
+
+      // Percents based on total voters
+      const pAttending = totalVoters > 0 ? Math.round((attendingCount / totalVoters) * 100) : 0;
+      const pUndecided = totalVoters > 0 ? Math.round((undecidedCount / totalVoters) * 100) : 0;
+      const pAbsent = totalVoters > 0 ? Math.round((absentCount / totalVoters) * 100) : 0;
+
+      // Update Poll Header & Bars
+      document.getElementById('stat-total-voters').textContent = `${totalVoters} bình chọn`;
+
+      document.getElementById('poll-percent-attending').textContent = `${pAttending}%`;
+      document.getElementById('poll-count-attending').textContent = attendingCount;
+      document.getElementById('bar-attending').style.width = `${pAttending}%`;
+
+      document.getElementById('poll-percent-undecided').textContent = `${pUndecided}%`;
+      document.getElementById('poll-count-undecided').textContent = undecidedCount;
+      document.getElementById('bar-undecided').style.width = `${pUndecided}%`;
+
+      document.getElementById('poll-percent-absent').textContent = `${pAbsent}%`;
+      document.getElementById('poll-count-absent').textContent = absentCount;
+      document.getElementById('bar-absent').style.width = `${pAbsent}%`;
+
+      document.getElementById('poll-payment-ratio').textContent = `${paidCount} / ${attendingCount} người đã đóng`;
+
+      // Financial calculations
+      const fee = appState.matchInfo.feePerPlayer || 0;
+      const totalPaidAmount = paidCount * fee;
+      const totalNeededAmount = attendingCount * fee;
+      const remainingAmount = Math.max(0, totalNeededAmount - totalPaidAmount);
+
+      document.getElementById('stat-attending-count').textContent = attendingCount;
+      document.getElementById('stat-paid-amount').textContent = formatMoney(totalPaidAmount);
+      document.getElementById('stat-remaining-amount').textContent = formatMoney(remainingAmount);
+
+      // Filter tabs counter
+      document.getElementById('count-all').textContent = totalVoters;
+      document.getElementById('count-attending').textContent = attendingCount;
+      const unpaidCount = attending.filter(p => !p.paid).length;
+      document.getElementById('count-unpaid').textContent = unpaidCount;
+      document.getElementById('count-absent').textContent = absentCount;
+    }
+
+    // 3. Render Players List
+    function renderPlayersList() {
+      const container = document.getElementById('players-list-container');
+      const emptyState = document.getElementById('empty-state');
+      container.innerHTML = '';
+
+      let list = appState.players;
+
+      // Apply current active filter
+      if (currentFilter === 'attending') {
+        list = list.filter(p => p.status === 'attending');
+      } else if (currentFilter === 'unpaid') {
+        list = list.filter(p => p.status === 'attending' && !p.paid);
+      } else if (currentFilter === 'absent') {
+        list = list.filter(p => p.status === 'absent');
+      }
+
+      if (list.length === 0) {
+        if (appState.players.length === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 text-center text-slate-400 text-xs font-medium border border-slate-100">
+              Không có cầu thủ nào trong bộ lọc này.
+            </div>
+          `;
+        }
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      // Generate colorful avatar background helper
+      const getAvatarColor = (name) => {
+        const colors = [
+          'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 
+          'bg-amber-500', 'bg-rose-500', 'bg-teal-500', 'bg-indigo-500'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+      };
+
+      list.forEach((player, index) => {
+        const initials = player.name.trim().charAt(0).toUpperCase();
+        const avatarBg = getAvatarColor(player.name);
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex flex-col gap-3 transition hover:shadow-md";
+
+        // Attendance active classes
+        const isAttending = player.status === 'attending';
+        const isUndecided = player.status === 'undecided';
+        const isAbsent = player.status === 'absent';
+
+        card.innerHTML = `
+          <!-- Top Row: Avatar + Name + Delete -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl ${avatarBg} text-white font-bold flex items-center justify-center text-sm shadow-sm shrink-0">
+                ${initials}
+              </div>
+              <div class="min-w-0">
+                <div class="font-bold text-slate-800 text-sm truncate flex items-center gap-1.5">
+                  ${player.name}
+                  ${isAttending ? '<span class="text-xs text-blue-500" title="Tham gia">⚽</span>' : ''}
+                </div>
+                <div class="text-[11px] text-slate-400">
+                  ${isAttending ? (player.paid ? '<span class="text-emerald-600 font-semibold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Đã nộp tiền</span>' : '<span class="text-amber-500 font-medium flex items-center gap-1"><i class="fa-regular fa-clock"></i> Chưa đóng tiền</span>') : (isAbsent ? 'Đã báo nghỉ' : 'Chưa quyết định')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Remove Button -->
+            <button onclick="removePlayer('${player.id}')" title="Xóa người này" class="text-slate-300 hover:text-rose-500 p-1.5 transition">
+              <i class="fa-regular fa-trash-can text-sm"></i>
+            </button>
+          </div>
+
+          <!-- Bottom Row: 3-Way Vote Pill & Payment Toggle -->
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-50 flex-wrap">
+            
+            <!-- Attendance Selector -->
+            <div class="flex items-center bg-slate-100 rounded-xl p-0.5 text-xs font-semibold">
+              <button 
+                onclick="updateAttendance('${player.id}', 'attending')" 
+                class="px-2.5 py-1 rounded-lg transition ${isAttending ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}"
+              >
+                🔥 Đi
+              </button>
+              <button 
+                onclick="updateAttendance('${player.id}', 'undecided')" 
+                class="px-2.5 py-1 rounded-lg transition ${isUndecided ? 'bg-amber-400 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}"
+              >
+                ⏳ 50/50
+              </button>
+              <button 
+                onclick="updateAttendance('${player.id}', 'absent')" 
+                class="px-2.5 py-1 rounded-lg transition ${isAbsent ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}"
+              >
+                ❌ Nghỉ
+              </button>
+            </div>
+
+            <!-- Payment Switch / Button -->
+            <div>
+              ${isAttending ? `
+                <button 
+                  onclick="togglePayment('${player.id}')" 
+                  class="px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${player.paid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'}"
+                >
+                  <i class="fa-solid ${player.paid ? 'fa-circle-check text-emerald-600' : 'fa-circle-dollar-to-slot text-rose-500'}"></i>
+                  <span>${player.paid ? 'Đã đóng tiền' : 'Chưa nộp tiền'}</span>
+                </button>
+              ` : `
+                <span class="text-[11px] text-slate-300 italic px-2">Không tính tiền</span>
+              `}
+            </div>
+
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // ACTIONS: Update Attendance
+    function updateAttendance(id, status) {
+      const p = appState.players.find(x => x.id === id);
+      if (!p) return;
+      p.status = status;
+      // If marked absent or undecided, keep paid status intact or handle gracefully
+      saveState();
+      renderAll();
+      showToast(`Đã cập nhật trạng thái của ${p.name}`);
+    }
+
+    // ACTIONS: Toggle Payment
+    function togglePayment(id) {
+      const p = appState.players.find(x => x.id === id);
+      if (!p) return;
+      p.paid = !p.paid;
+      saveState();
+      renderAll();
+      showToast(p.paid ? `✅ ${p.name} đã nộp tiền sân!` : `⏳ Đã chuyển ${p.name} sang chưa nộp tiền.`);
+    }
+
+    // ACTIONS: Add New Player
+    function addNewPlayer() {
+      const input = document.getElementById('input-player-name');
+      const name = input.value.trim();
+      if (!name) {
+        showToast('Vui lòng nhập tên cầu thủ!', 'warning');
+        return;
+      }
+
+      const newId = Date.now().toString();
+      appState.players.push({
+        id: newId,
+        name: name,
+        status: 'attending',
+        paid: false
+      });
+
+      input.value = '';
+      saveState();
+      renderAll();
+      showToast(`Đã thêm ${name} vào danh sách!`);
+    }
+
+    function handleKeyPressAdd(e) {
+      if (e.key === 'Enter') {
+        addNewPlayer();
+      }
+    }
+
+    // ACTIONS: Remove Player
+    function removePlayer(id) {
+      const p = appState.players.find(x => x.id === id);
+      const name = p ? p.name : 'cầu thủ';
+      appState.players = appState.players.filter(x => x.id !== id);
+      saveState();
+      renderAll();
+      showToast(`Đã xóa ${name}`);
+    }
+
+    // FILTER TABS
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.className = 'filter-tab px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      });
+
+      const activeBtn = document.getElementById(`filter-btn-${filter}`);
+      if (activeBtn) {
+        activeBtn.className = 'filter-tab px-3 py-1.5 rounded-lg bg-white shadow-sm text-blue-600 font-bold transition';
+      }
+
+      renderPlayersList();
+    }
+
+    // COPY REPORT TO CLIPBOARD (Zalo / Messenger friendly format)
+    function copyReport() {
+      const { title, date, venue, feePerPlayer } = appState.matchInfo;
+      const attending = appState.players.filter(p => p.status === 'attending');
+      const undecided = appState.players.filter(p => p.status === 'undecided');
+      const absent = appState.players.filter(p => p.status === 'absent');
+      const paidCount = attending.filter(p => p.paid).length;
+
+      const fee = feePerPlayer || 0;
+      const totalPaid = paidCount * fee;
+      const totalGoal = attending.length * fee;
+      const missing = Math.max(0, totalGoal - totalPaid);
+
+      let text = `⚽ DANH SÁCH BÓNG ĐÁ: ${title.toUpperCase()}\n`;
+      text += `⏰ Thời gian: ${date}\n`;
+      text += `🏟️ Địa điểm: ${venue}\n`;
+      text += `💰 Tiền sân: ${formatMoney(fee)}/người\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+      text += `🔥 DANH SÁCH ĐI ĐÁ (${attending.length} người):\n`;
+      if (attending.length === 0) {
+        text += `  (Chưa có ai chốt đi)\n`;
+      } else {
+        attending.forEach((p, idx) => {
+          const paidStatus = p.paid ? "✅ Đã đóng" : "⏳ Chưa đóng";
+          text += `  ${idx + 1}. ${p.name} - ${paidStatus}\n`;
+        });
+      }
+
+      if (undecided.length > 0) {
+        text += `\n⏳ 50/50 - CHƯA CHỐT (${undecided.length} người):\n`;
+        undecided.forEach(p => {
+          text += `  - ${p.name}\n`;
+        });
+      }
+
+      if (absent.length > 0) {
+        text += `\n❌ BÁO NGHỈ (${absent.length} người):\n`;
+        absent.forEach(p => {
+          text += `  - ${p.name}\n`;
+        });
+      }
+
+      text += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `📊 TỔNG KẾT QUỸ SÂN:\n`;
+      text += `• Đã thu: ${formatMoney(totalPaid)} (${paidCount}/${attending.length} người)\n`;
+      text += `• Còn thiếu: ${formatMoney(missing)}\n`;
+      text += `👉 Anh em chưa nộp tiền tranh thủ ting ting cho đội trưởng nhé! ⚽🔥`;
+
+      // Copy logic with safe fallback
+      copyToClipboard(text);
+    }
+
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast('📋 Đã sao chép danh sách! Dán vào Mess/Zalo ngay.');
+        } else {
+          showToast('Không thể sao chép, vui lòng thử lại.');
+        }
+      } catch (err) {
+        console.error('Copy error:', err);
+        showToast('Lỗi khi sao chép.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // MODAL: Settings
+    function openSettingsModal() {
+      const { title, date, venue, feePerPlayer } = appState.matchInfo;
+      document.getElementById('setting-title').value = title || '';
+      document.getElementById('setting-date').value = date || '';
+      document.getElementById('setting-venue').value = venue || '';
+      document.getElementById('setting-fee').value = feePerPlayer || 50000;
+      document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function saveSettings() {
+      const title = document.getElementById('setting-title').value.trim();
+      const date = document.getElementById('setting-date').value.trim();
+      const venue = document.getElementById('setting-venue').value.trim();
+      const fee = parseInt(document.getElementById('setting-fee').value) || 0;
+
+      appState.matchInfo = {
+        title: title || 'Trận bóng đá tuần này',
+        date: date || '19:30 - Thứ 6',
+        venue: venue || 'Sân bóng',
+        feePerPlayer: fee
+      };
+
+      saveState();
+      renderAll();
+      closeSettingsModal();
+      showToast('Đã lưu thông tin trận đấu!');
+    }
+
+    // MODAL: Reset
+    function openResetModal() {
+      document.getElementById('reset-modal').classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('reset-modal').classList.add('hidden');
+    }
+
+    function resetMatchStatus() {
+      // Keep players but set status to attending and paid to false
+      appState.players.forEach(p => {
+        p.paid = false;
+        p.status = 'attending';
+      });
+      saveState();
+      renderAll();
+      closeResetModal();
+      showToast('Đã đặt lại trạng thái đóng tiền cho tất cả!');
+    }
+
+    function resetAllToDefault() {
+      appState = JSON.parse(JSON.stringify(defaultData));
+      saveState();
+      renderAll();
+      closeResetModal();
+      showToast('Đã khôi phục dữ liệu ban đầu!');
+    }
+
+    function loadSampleData() {
+      resetAllToDefault();
+    }
+
+    // TOAST NOTIFICATION UTILITY
+    let toastTimeout;
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      clearTimeout(toastTimeout);
+
+      toastMsg.textContent = message;
+      if (type === 'warning') {
+        toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400 text-sm";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-sm";
+      }
+
+      toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+      }, 2400);
+    }
+
+    // INITIALIZE ON LOAD
+    window.onload = function() {
+      loadState();
+    };
+  </script>
+</body>
+</html>
